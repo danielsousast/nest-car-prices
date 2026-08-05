@@ -31,6 +31,18 @@
 $ yarn install
 ```
 
+## Database
+
+The application uses TypeORM with SQLite. By default, it creates a local
+`car-prices.sqlite` database in the project root and synchronizes registered
+entities when the app starts. The database file is ignored by Git.
+
+Set `DATABASE_PATH` to use a different SQLite file:
+
+```bash
+DATABASE_PATH=./data/car-prices.sqlite yarn start:dev
+```
+
 ## Compile and run the project
 
 ```bash
