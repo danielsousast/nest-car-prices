@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './user.entity';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async signup(name: string, email: string, password: string): Promise<User> {
+  async create(name: string, email: string, password: string): Promise<User> {
     const existingUser = await this.usersRepository.findOne({
       where: { email },
     });
@@ -35,5 +36,23 @@ export class UsersService {
 
   findAll(): Promise<User[]> {
     return this.usersRepository.find();
+  }
+
+  findByEmail(email: string): Promise<User[]> {
+    return this.usersRepository.find({ where: { email } });
+  }
+
+  async remove(id: string): Promise<User> {
+    const user = await this.findById(id);
+    return this.usersRepository.remove(user);
+  }
+
+  async update(id: string, attrs: Partial<User>): Promise<User> {
+    const user = await this.findById(id);
+    if(!user) {
+      throw new NotFoundException('User not found');
+    }
+    Object.assign(user, attrs);
+    return this.usersRepository.save(user);
   }
 }

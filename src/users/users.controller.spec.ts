@@ -11,7 +11,14 @@ describe('UsersController', () => {
       providers: [
         {
           provide: UsersService,
-          useValue: { signup: jest.fn(), findAll: jest.fn(), findById: jest.fn() },
+          useValue: {
+            create: jest.fn(),
+            findAll: jest.fn(),
+            findByEmail: jest.fn(),
+            findById: jest.fn(),
+            remove: jest.fn(),
+            update: jest.fn(),
+          },
         },
       ],
     }).compile();
