@@ -42,6 +42,12 @@ export class UsersService {
     return this.usersRepository.find({ where: { email } });
   }
 
+  // Authentication needs one user (or null), unlike the list-oriented search
+  // method used by GET /users?email=...
+  findOneByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
+  }
+
   async remove(id: string): Promise<User> {
     const user = await this.findById(id);
     return this.usersRepository.remove(user);

@@ -4,15 +4,27 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UsersService } from './users.service';
 import { UserDto } from './dtos/use.dto';
+import { AuthService } from './auth.service';
+import { SigninUserDto } from './dtos/signin-user.dto';
 
 @Controller('users')
 @Serialize(UserDto)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
+  // AuthService handles duplicate checks and password hashing before storage.
   @Post('signup')
   signup(@Body() body: CreateUserDto) {
-    return this.usersService.create(body.name, body.email, body.password);
+    return this.authService.signup(body.name, body.email, body.password);
+  }
+
+  // Returns the serialized user when the submitted credentials are valid.
+  @Post('signin')
+  signin(@Body() body: SigninUserDto) {
+    return this.authService.signin(body.email, body.password);
   }
 
   @Get()

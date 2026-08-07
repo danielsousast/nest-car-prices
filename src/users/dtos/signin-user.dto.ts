@@ -1,9 +1,7 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-export class CreateUserDto {
-  @IsString()
-  name!: string;
-
+export class SigninUserDto {
+  // DTO validation runs before the request reaches AuthService.
   @IsEmail()
   email!: string;
 
