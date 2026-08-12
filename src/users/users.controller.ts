@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Session, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../guards/auth.guard';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UsersService } from './users.service';
-import { UserDto } from './dtos/use.dto';
+import { UserDto } from './dtos/user.dto';
 import { AuthService } from './auth.service';
 import { SigninUserDto } from './dtos/signin-user.dto';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { User } from './user.entity';
 
 @Controller('users')
 @Serialize(UserDto)
@@ -17,14 +20,23 @@ export class UsersController {
 
   // AuthService handles duplicate checks and password hashing before storage.
   @Post('signup')
-  signup(@Body() body: CreateUserDto) {
-    return this.authService.signup(body.name, body.email, body.password);
+  async signup(@Body() body: CreateUserDto, @Session() session: any) {
+    const user = await this.authService.signup(body.name, body.email, body.password);
+    session.userId = user.id;
+    return user;
+  }
+
+  @Post('signout')
+  signout(@Session() session: any) {
+    session.userId = null;
   }
 
   // Returns the serialized user when the submitted credentials are valid.
   @Post('signin')
-  signin(@Body() body: SigninUserDto) {
-    return this.authService.signin(body.email, body.password);
+  async signin(@Body() body: SigninUserDto, @Session() session: any) {
+    const user = await this.authService.signin(body.email, body.password);
+    session.userId = user.id;
+    return user;
   }
 
   @Get()
@@ -35,6 +47,13 @@ export class UsersController {
 
     return this.usersService.findAll();
   }
+
+  @Get("/me")
+  @UseGuards(AuthGuard)
+  me(@CurrentUser() user: User) {
+    return user;
+  }
+
 
   @Get(':id')
   findById(@Param('id') id: string) {

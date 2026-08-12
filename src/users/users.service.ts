@@ -25,6 +25,9 @@ export class UsersService {
   }
 
   async findById(id: string): Promise<User> {
+    if(!id) {
+      throw new NotFoundException('User not found');
+    }
     const user = await this.usersRepository.findOne({ where: { id } });
 
     if (!user) {
@@ -45,6 +48,9 @@ export class UsersService {
   // Authentication needs one user (or null), unlike the list-oriented search
   // method used by GET /users?email=...
   findOneByEmail(email: string): Promise<User | null> {
+    if (!email) {
+      return Promise.resolve(null);
+    }
     return this.usersRepository.findOne({ where: { email } });
   }
 

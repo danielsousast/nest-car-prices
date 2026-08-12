@@ -4,20 +4,33 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
+import { describe, beforeEach, it, jest, expect } from '@jest/globals';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repository: jest.Mocked<
-    Pick<Repository<User>, 'create' | 'find' | 'findOne' | 'remove' | 'save'>
-  >;
+  let repository: {
+    create: jest.MockedFunction<(entity: Partial<User>) => User>;
+    find: jest.MockedFunction<(
+      options?: { where?: Partial<User> },
+    ) => Promise<User[]>>;
+    findOne: jest.MockedFunction<
+      (options: { where: Partial<User> }) => Promise<User | null>
+    >;
+    remove: jest.MockedFunction<(entity: User) => Promise<User>>;
+    save: jest.MockedFunction<(entity: User) => Promise<User>>;
+  };
 
   beforeEach(async () => {
     repository = {
-      create: jest.fn(),
-      find: jest.fn(),
-      findOne: jest.fn(),
-      remove: jest.fn(),
-      save: jest.fn(),
+      create: jest.fn() as jest.MockedFunction<(entity: Partial<User>) => User>,
+      find: jest.fn() as jest.MockedFunction<
+        (options?: { where?: Partial<User> }) => Promise<User[]>
+      >,
+      findOne: jest.fn() as jest.MockedFunction<
+        (options: { where: Partial<User> }) => Promise<User | null>
+      >,
+      remove: jest.fn() as jest.MockedFunction<(entity: User) => Promise<User>>,
+      save: jest.fn() as jest.MockedFunction<(entity: User) => Promise<User>>,
     };
 
     const module: TestingModule = await Test.createTestingModule({

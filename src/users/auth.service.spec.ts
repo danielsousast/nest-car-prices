@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
@@ -24,6 +25,23 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get(AuthService);
+  });
+
+  it('can create an instance of AuthService', () => {
+    expect(service).toBeDefined();
+  });
+
+  it('hashes the password before saving a new user', async () => {
+    usersService.findOneByEmail.mockResolvedValue(null);
+    usersService.create.mockImplementation(
+      async (name, email, password) =>
+        ({ id: 'user-id', name, email, password }) as User,
+    );
+
+    const user = await service.signup('Ada', 'ada@example.com', 'password123');
+
+    expect(user.password).not.toBe('password123');
+    expect(user.password).toMatch(/^[a-f0-9]+\.[a-f0-9]+$/);
   });
 
   it('signs up a user with a normalized email and hashed password', async () => {
