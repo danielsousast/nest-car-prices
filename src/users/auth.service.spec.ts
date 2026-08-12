@@ -59,11 +59,12 @@ describe('AuthService', () => {
   });
 
   it('rejects a duplicate email during sign up', async () => {
-    usersService.findOneByEmail.mockResolvedValue({} as User);
-
-    await expect(
-      service.signup('Ada', 'ada@example.com', 'password123'),
-    ).rejects.toThrow(ConflictException);
+    await service.signup('Ada', 'email@example.com', '123');
+    try {
+      await service.signup('Ada', 'email@example.com', '123');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConflictException);
+    }
   });
 
   it('signs in a user with valid credentials', async () => {
@@ -80,11 +81,54 @@ describe('AuthService', () => {
     ).resolves.toEqual(user);
   });
 
+  it('normalizes the email when signing in', async () => {
+    usersService.findOneByEmail.mockResolvedValue(null);
+    usersService.create.mockImplementation(
+      async (name, email, password) =>
+        ({ id: 'user-id', name, email, password }) as User,
+    );
+    const user = await service.signup('Ada', 'ada@example.com', 'password123');
+    usersService.findOneByEmail.mockResolvedValue(user);
+
+    await service.signin(' ADA@example.com ', 'password123');
+
+    expect(usersService.findOneByEmail).toHaveBeenLastCalledWith(
+      'ada@example.com',
+    );
+  });
+
+  it('rejects an incorrect password', async () => {
+    usersService.findOneByEmail.mockResolvedValue(null);
+    usersService.create.mockImplementation(
+      async (name, email, password) =>
+        ({ id: 'user-id', name, email, password }) as User,
+    );
+    const user = await service.signup('Ada', 'ada@example.com', 'password123');
+    usersService.findOneByEmail.mockResolvedValue(user);
+
+    await expect(
+      service.signin('ada@example.com', 'wrong-password'),
+    ).rejects.toThrow(new UnauthorizedException('Invalid email or password'));
+  });
+
+  it('rejects a malformed stored password hash', async () => {
+    usersService.findOneByEmail.mockResolvedValue({
+      id: 'user-id',
+      name: 'Ada',
+      email: 'ada@example.com',
+      password: 'invalid',
+    } as User);
+
+    await expect(
+      service.signin('ada@example.com', 'password123'),
+    ).rejects.toThrow(new UnauthorizedException('Invalid email or password'));
+  });
+
   it('rejects invalid credentials', async () => {
     usersService.findOneByEmail.mockResolvedValue(null);
 
     await expect(
       service.signin('missing@example.com', 'password123'),
-    ).rejects.toThrow(UnauthorizedException);
+    ).rejects.toThrow(new UnauthorizedException('Invalid email or password'));
   });
 });
