@@ -36,6 +36,13 @@ export class UsersService {
     return user;
   }
 
+  findOneById(id: string): Promise<User | null> {
+    if (!id) {
+      return Promise.resolve(null);
+    }
+    return this.usersRepository.findOne({ where: { id } });
+  }
+
   findAll(): Promise<User[]> {
     return this.usersRepository.find();
   }
