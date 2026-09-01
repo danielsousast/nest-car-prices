@@ -12,6 +12,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
+import { CurrentUserMiddleware } from './users/middlewares/current-user.middleware';
 
 @Module({
   imports: [
@@ -53,5 +54,9 @@ export class AppModule implements NestModule {
         }),
       )
       .forRoutes('*');
+
+    // Must run after cookieSession (needs req.session) and before guards,
+    // which is why this is middleware and not an interceptor.
+    consumer.apply(CurrentUserMiddleware).forRoutes('*');
   }
 }
